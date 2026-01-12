@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Empleados | Gestión de Personal</title>
+    <link rel="stylesheet" href="/WEBmodernas/csss/inicio.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* TABLA DE EMPLEADOS */
+        .employees-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        .employees-panel h2 {
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .actions button {
+            margin-right: 5px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #d97706;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #b91c1c;
+        }
+
+        .btn-add {
+            background: #10b981;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .btn-add:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <h2 class="logo">ControlRRHH</h2>
+        <nav>
+            <a>Inicio</a>
+            <a class="active">Empleados</a>
+            <a>Fichajes</a>
+            <a>Horarios</a>
+            <a>Nóminas</a>
+            <a>Incidencias</a>
+            <a>Ajustes</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div>
+                <h1>Gestión de Empleados</h1>
+                <p>Administra los usuarios registrados</p>
+            </div>
+            <button class="btn-primary btn-add" onclick="agregarEmpleado()">Añadir Empleado</button>
+        </header>
+
+        <!-- EMPLEADOS TABLE -->
+        <section class="employees-panel">
+            <h2>Lista de Empleados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellidos</th>
+                        <th>Email</th>
+                        <th>Password Hash</th>
+                        <th>Activo</th>
+                        <th>Fecha de Alta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los empleados se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+</div>
+
+<script>
+  // URL y clave pública de Supabase
+  const supabaseUrl = 'https://crwwgakllneqxrnmwruy.supabase.co';
+  const supabaseKey = 'sb_publishable_a44YJbKMaMaPC9KwC24E3A_YZbPAokj';
+
+  // Inicializamos Supabase solo una vez
+  if (!window.sbClient) {
+    window.sbClient = supabase.createClient(supabaseUrl, supabaseKey);
+  }
+
+  const sbClient = window.sbClient;
+
+  // Función para cargar empleados en la tabla
+  async function cargarEmpleados() {
+    try {
+      const { data, error } = await sbClient
+        .from('usuarios')
+        .select('*');
+
+      if (error) {
+        console.error('Error cargando empleados:', error.message);
+        return;
+      }
+
+      const tbody = document.querySelector('tbody');
+      tbody.innerHTML = ''; // Limpiar la tabla antes de agregar filas
+
+      data.forEach(emp => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${emp.id_usuario}</td>
+          <td>${emp.nombre}</td>
+          <td>${emp.apellidos}</td>
+          <td>${emp.email}</td>
+          <td>****</td>
+          <td>${emp.activo ? 'Sí' : 'No'}</td>
+          <td>${emp.fecha_alta ? emp.fecha_alta.slice(0, 10) : ''}</td>
+          <td class="actions">
+            <button class="btn-edit" onclick="editarEmpleado(${emp.id_usuario})">Editar</button>
+            <button class="btn-delete" onclick="eliminarEmpleado(${emp.id_usuario})">Eliminar</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+    } catch (err) {
+      console.error('Error inesperado al cargar empleados:', err);
+    }
+  }
+
+  // Funciones de acción
+  function editarEmpleado(id) {
+    alert('Aquí se abriría el formulario para editar al empleado con ID ' + id);
+  }
+
+  async function eliminarEmpleado(id) {
+    if (confirm('¿Seguro que quieres eliminar al empleado con ID ' + id + '?')) {
+      const { error } = await sbClient
+        .from('usuarios')
+        .delete()
+        .eq('id_usuario', id);
+
+      if (error) {
+        return alert('Error eliminando: ' + error.message);
+      }
+
+      cargarEmpleados(); // Refrescar la tabla
+    }
+  }
+
+  function agregarEmpleado() {
+    alert('Aquí se abriría el formulario para añadir un nuevo empleado');
+  }
+
+  // Cargar empleados al iniciar la página
+  window.onload = cargarEmpleados;
+</script>
+
+</body>
+</html>

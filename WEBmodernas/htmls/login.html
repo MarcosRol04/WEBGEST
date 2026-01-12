@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login | ControlRRHH</title>
+    <link rel="stylesheet" href="/WEBmodernas/csss/inicio.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f6f9;
+        }
+
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            width: 350px;
+            text-align: center;
+        }
+
+        .login-container h1 {
+            margin-bottom: 20px;
+            color: #1f2933;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            background: #1d4ed8;
+        }
+
+        .error-message {
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1>Iniciar Sesión</h1>
+    <div class="error-message" id="errorMsg"></div>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <button class="btn-login" onclick="login()">Entrar</button>
+</div>
+
+<script>
+    // Inicialización global de Supabase (solo una vez)
+    const supabaseUrl = 'https://crwwgakllneqxrnmwruy.supabase.co';
+    const supabaseKey = 'sb_publishable_a44YJbKMaMaPC9KwC24E3A_YZbPAokj';
+
+    if (!window.sbClient) {
+        window.sbClient = supabase.createClient(supabaseUrl, supabaseKey);
+    }
+    const sbClient = window.sbClient;
+
+    // Función de login
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.textContent = '';
+
+        try {
+            const { data, error } = await sbClient.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                errorMsg.textContent = error.message;
+                return;
+            }
+
+            // Login correcto, redirigir al panel de empleados
+            window.location.href = 'empleados.html';
+
+        } catch (err) {
+            console.error('Error inesperado en login:', err);
+            errorMsg.textContent = 'Ocurrió un error inesperado.';
+        }
+    }
+</script>
+
+</body>
+</html>

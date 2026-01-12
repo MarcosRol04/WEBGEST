@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro | ControlRRHH</title>
+    <link rel="stylesheet" href="/WEBmodernas/csss/inicio.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #f4f6f9;
+        }
+
+        .registro-container {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            width: 350px;
+            text-align: center;
+        }
+
+        .registro-container h1 {
+            margin-bottom: 20px;
+            color: #1f2933;
+        }
+
+        .registro-container input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .btn-register {
+            width: 100%;
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .btn-register:hover {
+            background: #059669;
+        }
+
+        .error-message {
+            color: #dc2626;
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: #10b981;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="registro-container">
+    <h1>Registro</h1>
+    <div class="error-message" id="errorMsg"></div>
+    <div class="success-message" id="successMsg"></div>
+    <input type="text" id="nombre" placeholder="Nombre" required>
+    <input type="text" id="apellidos" placeholder="Apellidos" required>
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+    <button class="btn-register" onclick="registrarUsuario()">Registrar</button>
+</div>
+
+<script>
+    // Inicializar Supabase
+    const supabaseUrl = 'https://crwwgakllneqxrnmwruy.supabase.co';
+    const supabaseKey = 'sb_publishable_a44YJbKMaMaPC9KwC24E3A_YZbPAokj';
+
+    if (!window.sbClient) {
+        window.sbClient = supabase.createClient(supabaseUrl, supabaseKey);
+    }
+    const sbClient = window.sbClient;
+
+    async function registrarUsuario() {
+        const nombre = document.getElementById('nombre').value;
+        const apellidos = document.getElementById('apellidos').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+
+        errorMsg.textContent = '';
+        successMsg.textContent = '';
+
+        try {
+            // Verificar si el email ya existe en la tabla 'usuarios'
+            const { data: existing, error: existErr } = await sbClient
+                .from('usuarios')
+                .select('email')
+                .eq('email', email);
+
+            if (existErr) throw existErr;
+            if (existing.length > 0) {
+                errorMsg.textContent = 'Este correo ya está registrado.';
+                return;
+            }
+
+            // 1️⃣ Crear usuario en Supabase Auth
+            const { data: authData, error: authError } = await sbClient.auth.signUp({
+                email,
+                password
+            });
+
+            if (authError) {
+                errorMsg.textContent = authError.message;
+                return;
+            }
+
+            // 2️⃣ Hacer login temporal para poder insertar en la tabla (cumple con RLS)
+            const { data: loginData, error: loginErr } = await sbClient.auth.signInWithPassword({
+                email,
+                password
+            });
+            if (loginErr) {
+                errorMsg.textContent = loginErr.message;
+                return;
+            }
+
+            // 3️⃣ Insertar usuario en tabla 'usuarios' (id_usuario autogenerado)
+            const { data, error } = await sbClient
+                .from('usuarios')
+                .insert([{
+                    nombre,
+                    apellidos,
+                    email,
+                    password_hash: password, // en producción usar hash seguro
+                    activo: true,
+                    fecha_alta: new Date().toISOString()
+                }]);
+
+            if (error) {
+                errorMsg.textContent = error.message;
+                return;
+            }
+
+            successMsg.textContent = 'Usuario registrado correctamente. Revisa tu correo para confirmar.';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+            errorMsg.textContent = 'Ocurrió un error inesperado.';
+        }
+    }
+</script>
+
+</body>
+</html>
