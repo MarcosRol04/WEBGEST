@@ -54,6 +54,14 @@
             color: #dc2626;
             margin-bottom: 10px;
         }
+        .registro {
+            margin-top: 10%;
+            color: rgb(4, 4, 27);
+            font-style: italic;
+            border: none;
+            background-color: white;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +72,10 @@
     <input type="email" id="email" placeholder="Correo electrónico" required>
     <input type="password" id="password" placeholder="Contraseña" required>
     <button class="btn-login" onclick="login()">Entrar</button>
+    <button class="registro" onclick="noAccount()">No tengo Cuenta</button>
+
 </div>
+
 
 <script>
     // Inicialización global de Supabase (solo una vez)
@@ -102,6 +113,11 @@
             errorMsg.textContent = 'Ocurrió un error inesperado.';
         }
     }
+    async function noAccount(){
+        window.location.href = 'registro.html';
+
+    }
+    
 </script>
 
 </body>
